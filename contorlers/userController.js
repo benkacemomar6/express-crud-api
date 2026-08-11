@@ -1,7 +1,67 @@
 var {getUser} =require("../model/usermodel");
 const{client}=require("../gonfig/db")
 const { ObjectId } = require("mongodb");
+const jwt = require("jsonwebtoken");
+const bcrypt=require("bcrypt")
+const auth=require("../mideleware/auth")
+async function signup(req,res) {
+    const {name,pass}=req.body
+    if (name.trim()==""){
+        res.status(400).json({
+            "message":"name required"
+        });
+    }
+    if (pass.trim()==""){
+        res.status(400).json({
+            "message":"pass invalid"
+        });
+    }
+    const hashedPassword = await bcrypt.hash(pass, 10);
+    
+  
+    
+  const newUser=await client.db("test").collection("users").insertOne({name:name,
+    pass:hashedPassword
+  });
+    res.status(201).json(newUser);
+
+
+    
+}
+async function login(req,res) {
+   const  {name,pass}=req.body;
+   const user=await  client.db("test").collection("users").findOne({name:name});
+   if (!user){
+    res.status(404).json({
+        "message":"user not found"
+    });
+   }
+   else{
+
+    const isPasswordValid = await bcrypt.compare(pass, user.pass);
+    if (!isPasswordValid){
+      res.status(404).json({
+        "message":"user not found"
+    });
+        
+    } 
+    
+          const token = jwt.sign(
+            { id:user._id  },
+            "mySecretKey",
+            { expiresIn: "1h" }
+        );
+    res.json(token)
+}
+
+
+    
+}
+
+
+
 async function getAllUsers(req,res){
+    const userId=req.user.id;
 const users=await client.db("test").collection("users").find().toArray();
 
     res.json(users);
@@ -63,6 +123,8 @@ module.exports={
     getuser,
     addUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    signup,
+    login
 
 }
