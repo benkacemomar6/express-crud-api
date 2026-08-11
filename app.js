@@ -1,6 +1,8 @@
 const esxpres=require('express');
 const app=esxpres();
 app.use(esxpres.json());
+const {connectDB}=require("./gonfig/db");
+connectDB();
 const logger=require("./mideleware/logger")
 
 const userRouter=require("./rout/user-root")

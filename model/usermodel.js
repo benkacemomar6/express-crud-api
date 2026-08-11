@@ -12,4 +12,4 @@ function getUser(){
     
     return users
 }
-module.exports= {users,getUser};
+module.exports= {getUser};
